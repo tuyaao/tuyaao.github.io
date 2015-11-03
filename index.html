@@ -2,7 +2,7 @@
 <html lang="en-us">
   <head>
     <meta charset="UTF-8">
-    <title>程序内存空间的使用 by tuyaao</title>
+    <title>Hashtable&amp;HashMap的区别 by tuyaao</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -11,207 +11,110 @@
   </head>
   <body>
     <section class="page-header">
-      <h1 class="project-name">程序内存空间的使用</h1>
+      <h1 class="project-name">Hashtable&amp;HashMap的区别</h1>
       <h2 class="project-tagline"></h2>
     </section>
 
     <section class="main-content">
-      <h3>
-<a id="一预备知识程序的内存分配" class="anchor" href="#%E4%B8%80%E9%A2%84%E5%A4%87%E7%9F%A5%E8%AF%86%E7%A8%8B%E5%BA%8F%E7%9A%84%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D" aria-hidden="true"><span class="octicon octicon-link"></span></a>一、预备知识—程序的内存分配</h3>
+      <h1>
+<a id="先总结" class="anchor" href="#%E5%85%88%E6%80%BB%E7%BB%93" aria-hidden="true"><span class="octicon octicon-link"></span></a>先总结：</h1>
 
-<p>一个由C/C++编译的程序占用的内存分为以下几个部分<br>
-  1、栈区（stack）：编译器自动分配释放，存放函数的参数值，局部变量的值等。其操作方式类似于数据结构中的栈。分为静态分配和动态分配，动态分配由malloc实现，静态分配为编译器实现，比如局部变量。
-  2、堆区（heap）：一般由程序员分配释放，若程序员不释放，程序结束时可能由OS回收，分配方式倒是类似于链表。  堆全部都是动态分配的。
-  3、全局区（静态区）（static）：全局变量和静态变量的存储是放在一块的，初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域。程序结束后由系统释放。<br>
-  4、文字常量区：常量字符串就是放在这里的。程序结束后由系统释放。
-  5、程序代码区—存放函数体的二进制代码。  </p>
+<p>Hashtable
+注意1 方法是同步的
+注意2 方法不允许value==null
+注意3 方法调用了key的hashCode方法，如果key==null,会抛出空指针异常
+HashMap<br>
+注意1 键和值都是对象
+注意2 方法是非同步的(但是需要的时候可以做同步，性能比较高)
+注意3 方法允许key==null,但是只有一个
+注意4 方法并没有对value进行任何调用，所以允许为null
+Hashtable和HashMap采用的hash/rehash算法都大概一样，所以性能不会有很大的差</p>
 
-<p>“栈(stack)”和“堆(heap)”是两种不同的动态数据区，栈是一种线性结构，堆是一种链式结构。进程的每个线程都有私有的“栈”，所以每个线程虽然代码一样，但本地变量的数据都是互不干扰。一个堆栈可以通过“基地址”和“栈顶”地址来描述。全局变量和静态变量分配在静态数据区，本地变量分配在动态数据区，即堆栈中。</p>
+<h1>
+<a id="我们先看2个类的定义" class="anchor" href="#%E6%88%91%E4%BB%AC%E5%85%88%E7%9C%8B2%E4%B8%AA%E7%B1%BB%E7%9A%84%E5%AE%9A%E4%B9%89" aria-hidden="true"><span class="octicon octicon-link"></span></a>我们先看2个类的定义</h1>
 
-<p>静态内存是在程序一开始运行就会分配内存，直到程序结束了，内存才被释放。
-动态内存是在程序调用在程序中定义的函数时才被分配，函数调用结束了，动态内存就释放。</p>
+<p>public class Hashtable<br>
+    extends Dictionary<br>
+    implements Map, Cloneable, java.io.Serializable  </p>
 
-<h3>
-<a id="二例子程序" class="anchor" href="#%E4%BA%8C%E4%BE%8B%E5%AD%90%E7%A8%8B%E5%BA%8F" aria-hidden="true"><span class="octicon octicon-link"></span></a>二、例子程序</h3>
-
-<p>这是一个前辈写的，非常详细<br>
-  //main.cpp<br>
-  int   a   =   0;   全局初始化区<br>
-  char   *p1;   全局未初始化区<br>
-  main()<br>
-  {<br>
-  int   b;   栈<br>
-  char   s[]   =   "abc";   栈<br>
-  char   *p2;   栈<br>
-  char   *p3   =   "123456";   123456/0在常量区，p3在栈上。<br>
-  static   int   c   =0；   全局（静态）初始化区<br>
-  p1   =   (char   *)malloc(10);<br>
-  p2   =   (char   *)malloc(20);<br>
-  分配得来得10和20字节的区域就在堆区。<br>
-  strcpy(p1,   "123456");   123456/0放在常量区，编译器可能会将它与p3所指向的"123456"<br>
-  优化成一个地方。<br>
-  }    </p>
+<p>public class HashMap<br>
+    extends AbstractMap<br>
+    implements Map, Cloneable, Serializable</p>
 
 <h3>
-<a id="二堆和栈的理论知识" class="anchor" href="#%E4%BA%8C%E5%A0%86%E5%92%8C%E6%A0%88%E7%9A%84%E7%90%86%E8%AE%BA%E7%9F%A5%E8%AF%86" aria-hidden="true"><span class="octicon octicon-link"></span></a>二、堆和栈的理论知识</h3>
+<a id="可见hashtable-继承自-dictiionary-而-hashmap继承自abstractmap" class="anchor" href="#%E5%8F%AF%E8%A7%81hashtable-%E7%BB%A7%E6%89%BF%E8%87%AA-dictiionary-%E8%80%8C-hashmap%E7%BB%A7%E6%89%BF%E8%87%AAabstractmap" aria-hidden="true"><span class="octicon octicon-link"></span></a>可见Hashtable 继承自 Dictiionary 而 HashMap继承自AbstractMap</h3>
 
-<p>2.1申请方式<br>
-  stack:<br>
-  由系统自动分配。例如，声明在函数中一个局部变量int b;系统自动在栈中为b开辟空间<br>
-  heap:<br>
-  需要程序员自己申请，并指明大小，在c中malloc函数<br>
-  如p1   =   (char   *)malloc(10);<br>
-  在C++中用new运算符<br>
-  如p2   =   new   char[10];<br>
-  但是注意p1、p2本身是在栈中的。    </p>
+<h1>
+<a id="hashtable的put方法如下" class="anchor" href="#hashtable%E7%9A%84put%E6%96%B9%E6%B3%95%E5%A6%82%E4%B8%8B" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hashtable的put方法如下</h1>
 
-<p>2.2<br>
-  申请后系统的响应<br>
-  栈：只要栈的剩余空间大于所申请空间，系统将为程序提供内存，否则将报异常提示栈溢  出。<br>
-  堆：首先应该知道操作系统有一个记录空闲内存地址的链表，当系统收到程序的申请时，  会遍历该链表，寻找第一个空间大于所申请空间的堆结点，然后将该结点从空闲结点链表  中删除，并将该结点的空间分配给程序，另外，对于大多数系统，会在这块内存空间中的  首地址处记录本次分配的大小，这样，代码中的delete语句才能正确的释放本内存空间。  另外，由于找到的堆结点的大小不一定正好等于申请的大小，系统会自动的将多余的那部<br>
-分重新放入空闲链表中。    </p>
-
-<h3>
-<a id="23申请大小的限制" class="anchor" href="#23%E7%94%B3%E8%AF%B7%E5%A4%A7%E5%B0%8F%E7%9A%84%E9%99%90%E5%88%B6" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.3申请大小的限制</h3>
-
-<p>栈：在Windows下,栈是向低地址扩展的数据结构，是一块连续的内存的区域。这句话的意  思是栈顶的地址和栈的最大容量是系统预先规定好的，在WINDOWS下，栈的大小是2M（也有  的说是1M，总之是一个编译时就确定的常数），如果申请的空间超过栈的剩余空间时，将<br>
-  提示overflow。因此，能从栈获得的空间较小。<br>
-  堆：堆是向高地址扩展的数据结构，是不连续的内存区域。这是由于系统是用链表来存储  的空闲内存地址的，自然是不连续的，而链表的遍历方向是由低地址向高地址。堆的大小  受限于计算机系统中有效的虚拟内存。由此可见，堆获得的空间比较灵活，也比较大。    </p>
-
-<h3>
-<a id="24申请效率的比较" class="anchor" href="#24%E7%94%B3%E8%AF%B7%E6%95%88%E7%8E%87%E7%9A%84%E6%AF%94%E8%BE%83" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.4申请效率的比较：</h3>
-
-<p>栈由系统自动分配，速度较快。但程序员是无法控制的。    堆是由new分配的内存，一般速度比较慢，而且容易产生内存碎片,不过用起来最方便.<br>
-  另外，在WINDOWS下，最好的方式是用VirtualAlloc分配内存，他不是在堆，也不是在栈是<br>
-  直接在进程的地址空间中保留一块内存，虽然用起来最不方便。但是速度快，也最灵活。  </p>
-
-<h3>
-<a id="25堆和栈中的存储内容" class="anchor" href="#25%E5%A0%86%E5%92%8C%E6%A0%88%E4%B8%AD%E7%9A%84%E5%AD%98%E5%82%A8%E5%86%85%E5%AE%B9" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.5堆和栈中的存储内容</h3>
-
-<p>栈：   在函数调用时，第一个进栈的是主函数中后的下一条指令（函数调用语句的下一条可<br>
-  执行语句）的地址，然后是函数的各个参数，在大多数的C编译器中，参数是由右往左入栈<br>
-  的，然后是函数中的局部变量。注意静态变量是不入栈的。<br>
-  当本次函数调用结束后，局部变量先出栈，然后是参数，最后栈顶指针指向最开始存的地<br>
-  址，也就是主函数中的下一条指令，程序由该点继续运行。<br>
-  堆：一般是在堆的头部用一个字节存放堆的大小。堆中的具体内容由程序员安排。    </p>
-
-<h3>
-<a id="26存取效率的比较" class="anchor" href="#26%E5%AD%98%E5%8F%96%E6%95%88%E7%8E%87%E7%9A%84%E6%AF%94%E8%BE%83" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.6存取效率的比较</h3>
-
-<p>char   s1[]   =   "aaaaaaaaaaaaaaa";<br>
-  char   *s2   =   "bbbbbbbbbbbbbbbbb";<br>
-  aaaaaaaaaaa是在运行时刻赋值的；<br>
-  而bbbbbbbbbbb是在编译时就确定的；<br>
-  但是，在以后的存取中，在栈上的数组比指针所指向的字符串(例如堆)快。<br>
-  比如：<br>
-  #include<br>
-  void   main()<br>
-  {<br>
-  char   a   =   1;<br>
-  char   c[]   =   "1234567890";<br>
-  char   *p   ="1234567890";<br>
-  a   =   c[1];<br>
-  a   =   p[1];<br>
-  return;<br>
+<p>public synchronized V put(K key, V value) {  //###### 注意这里1<br>
+  // Make sure the value is not null<br>
+  if (value == null) { //###### 注意这里 2<br>
+    throw new NullPointerException();<br>
   }<br>
-  对应的汇编代码<br>
-  10:   a   =   c[1];<br>
-  00401067   8A   4D   F1   mov   cl,byte   ptr   [ebp-0Fh]<br>
-  0040106A   88   4D   FC   mov   byte   ptr   [ebp-4],cl<br>
-  11:   a   =   p[1];<br>
-  0040106D   8B   55   EC   mov   edx,dword   ptr   [ebp-14h]<br>
-  00401070   8A   42   01   mov   al,byte   ptr   [edx+1]<br>
-  00401073   88   45   FC   mov   byte   ptr   [ebp-4],al<br>
-  第一种在读取时直接就把字符串中的元素读到寄存器cl中，而第二种则要先把指针值读到<br>
-  edx中，再根据edx读取字符，显然慢了。    </p>
+  // Makes sure the key is not already in the hashtable.<br>
+  Entry tab[] = table;<br>
+  int hash = key.hashCode(); //###### 注意这里 3<br>
+  int index = (hash &amp; 0x7FFFFFFF) % tab.length;<br>
+  for (Entry e = tab[index]; e != null; e = e.next) {<br>
+    if ((e.hash == hash) &amp;&amp; e.key.equals(key)) {<br>
+      V old = e.value;<br>
+      e.value = value;<br>
+      return old;<br>
+    }<br>
+  }<br>
+  modCount++;<br>
+  if (count &gt;= threshold) {<br>
+    // Rehash the table if the threshold is exceeded<br>
+    rehash();<br>
+    tab = table;<br>
+    index = (hash &amp; 0x7FFFFFFF) % tab.length;<br>
+  }<br>
+  // Creates the new entry.<br>
+  Entry e = tab[index];<br>
+  tab[index] = new Entry(hash, key, value, e);<br>
+  count++;<br>
+  return null;<br>
+}  </p>
+
+<h1>
+<a id="hashmap的put方法如下" class="anchor" href="#hashmap%E7%9A%84put%E6%96%B9%E6%B3%95%E5%A6%82%E4%B8%8B" aria-hidden="true"><span class="octicon octicon-link"></span></a>HashMap的put方法如下</h1>
+
+<p>public V put(K key, V value) { //###### 注意这里 1<br>
+  if (key == null)  //###### 注意这里 2<br>
+    return putForNullKey(value);<br>
+  int hash = hash(key.hashCode());<br>
+  int i = indexFor(hash, table.length);<br>
+  for (Entry e = table[i]; e != null; e = e.next) {<br>
+    Object k;<br>
+    if (e.hash == hash &amp;&amp; ((k = e.key) == key || key.equals(k))) {<br>
+      V oldValue = e.value;<br>
+      e.value = value;<br>
+      e.recordAccess(this);<br>
+      return oldValue;<br>
+    }<br>
+  }<br>
+  modCount++;<br>
+  addEntry(hash, key, value, i);  //###### 注意这里<br>
+  return null;<br>
+}  </p>
 
 <h3>
-<a id="27小结" class="anchor" href="#27%E5%B0%8F%E7%BB%93" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.7小结：</h3>
+<a id="附hashtable容易被误解的部分" class="anchor" href="#%E9%99%84hashtable%E5%AE%B9%E6%98%93%E8%A2%AB%E8%AF%AF%E8%A7%A3%E7%9A%84%E9%83%A8%E5%88%86" aria-hidden="true"><span class="octicon octicon-link"></span></a>附：Hashtable容易被误解的部分</h3>
 
-<p>堆和栈的区别可以用如下的比喻来看出：<br>
-  使用栈就象我们去饭馆里吃饭，只管点菜（发出申请）、付钱、和吃（使用），吃饱了就<br>
-  走，不必理会切菜、洗菜等准备工作和洗碗、刷锅等扫尾工作，他的好处是快捷，但是自<br>
-  由度小。<br>
-  使用堆就象是自己动手做喜欢吃的菜肴，比较麻烦，但是比较符合自己的口味，而且自由<br>
-  度大。 </p>
-
-<p>静态非静态域和方法的是否copy:
-  class field：有用static修饰的field
-  class method：有用static修饰的method
-  instance field：没有用static修饰的field
-  instance method：没有用static修饰的method
-  那么他们在内存中的表示为：
-  class field：共用一块记忆体
-  class method：共用一块记忆体
-  instance field：随着每个instance各有一块记忆体
-  instance method：共用一块记忆体</p>
-
-<p>栈：栈存在于RAM中。栈是动态的，它的存储速度是第二快的。stack
-堆：堆位于RAM中，是一个通用的内存池。所有的对象都存储在堆中。heap</p>
-
-<p>如果instance method也随着instance增加而增加的话，那内存消耗也太大了，为了做到共用一小段内存，Java是根据this关键字做到的，比如：instance1.instanceMethod(); instance2.instanceMethod(); 在传递给对象参数的时候，Java编译器自动先加上了一个this参数，它表示传递的是这个对象引用，虽然他们两个对象共用一个方法，但是他们的方法中所产生的数据是私有的，这是因为参数被传进来变成call stack内的entry，而各个对象都有不同call stack，所以不会混淆。其实调用每个非static方法时，Java编译器都会自动的先加上当前调用此方法对象的参数，有时候在一个方法调用另一个方法，这时可以不用在前面加上this的，因为要传递的对象参数就是当前执行这个方法的对象。</p>
-
-<h3>
-<a id="关于静态方法和实例方法的一些误区" class="anchor" href="#%E5%85%B3%E4%BA%8E%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95%E5%92%8C%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95%E7%9A%84%E4%B8%80%E4%BA%9B%E8%AF%AF%E5%8C%BA" aria-hidden="true"><span class="octicon octicon-link"></span></a>关于静态方法和实例方法的一些误区。</h3>
-
-<p>一、静态方法常驻内存，实例方法不是，所以静态方法效率高但占内存。 
- 事实上，方法都是一样的，在加载时机和占用内存上，静态方法和实例方法是一样的，在类型第一次被使用时加载。调用的速度基本上没有差别。 
-二、静态方法在堆上分配内存，实例方法在堆栈上。 
-事实上所有的方法都不可能在堆或者堆栈上分配内存，方法作为代码是被加载到特殊的代码内存区域，这个内存区域是不可写的。 </p>
-
-<p>java中静态方法区的资源什么时间被释放 class里面的静态方法是在这个class被释放的时候同时释放。 那么，class是什么时候释放的呢？ 在sun 的JDK中所有的class都有它的ClassLoader,当这个ClassLoader被释放时，所有被它装载的class也同时被释放。</p>
-
-<h3>
-<a id="释放时应该有几种情况" class="anchor" href="#%E9%87%8A%E6%94%BE%E6%97%B6%E5%BA%94%E8%AF%A5%E6%9C%89%E5%87%A0%E7%A7%8D%E6%83%85%E5%86%B5" aria-hidden="true"><span class="octicon octicon-link"></span></a>释放时应该有几种情况：</h3>
-
-<p>1.static方法中的static和const变量在项目启动时就已经分内存了，而且方法调用之后也不会被释放。
-2.static方法中的值变量（比如int型）在变量声明时才开始分配内存，它在超出它的作用域后马上被释放。
-3.static方法中的引用型变量要看它的使用者，当static方法调用后它是否被释放决定于该对象是否仍然被使用。</p>
-
-<p>static变量靜態占用內存﹐在程序運行期間它一直占用﹐直到程序結束運行它才释放</p>
-
-<h3>
-<a id="类加载各部分的执行顺序" class="anchor" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%90%84%E9%83%A8%E5%88%86%E7%9A%84%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F" aria-hidden="true"><span class="octicon octicon-link"></span></a>类加载各部分的执行顺序：</h3>
-
-<p>一般顺序：静态块——&gt;静态变量——&gt;成员变量——&gt;构造方法——&gt;静态方法
-1、静态代码块（只加载一次） 2、构造方法（创建一个实例就加载一次）3、静态方法需要调用才会执行，所以最后结果没有</p>
-
-<h3>
-<a id="先把内在的执行规律简述" class="anchor" href="#%E5%85%88%E6%8A%8A%E5%86%85%E5%9C%A8%E7%9A%84%E6%89%A7%E8%A1%8C%E8%A7%84%E5%BE%8B%E7%AE%80%E8%BF%B0" aria-hidden="true"><span class="octicon octicon-link"></span></a>先把内在的执行规律简述：</h3>
-
-<pre><code>      静态变量这个问题是最不容易搞明白的问题，静态变量只加载一次，以后不论你怎么new不会再加载
-      而且注意：静态块也是仅加载一次，
-       静态变量后大括号内有代码的话，new一次执行一次。
-       静态块加载的时候大括号内的语句就执行完毕，以后不会执行。
-</code></pre>
-
-<h3>
-<a id="大补充" class="anchor" href="#%E5%A4%A7%E8%A1%A5%E5%85%85" aria-hidden="true"><span class="octicon octicon-link"></span></a>大补充：</h3>
-
-<p>A、类的初始化顺序如下：
--&gt;1、为静态属性分配内存并赋值（后面大括号语句不执行，这里是初始化，只是添加变量和值）或执行静态代码块（立刻执行大括号里面的语句）
-         为什么这样说呢，因为谁在前先加载谁，包括静态属性之间，和静态块之间的顺序，
-         但是注意，虽然顺序都可以当第一，但是静态块、静态属性执行的东西完全不一样，怎么不一样，已经写上去了自己看
-        （笔者注：这个问题，在花了很多时间的推敲后，最终有了答案，前后花了不少的时间去运行代码，修改各种情况，也有同学参与了进来，所以大家对我们付出的努力应该尊重啊）
--&gt;2、为非静态属性分配内存并赋值
--&gt;3、构造方法（实际上这个先于非静态属性调用到，只是构造方法里面的语句暂停执行，等到非静态属性加载完才执行）
--&gt;4、执行非静态代码块 或 静态方法（都是调用了才加载）。</p>
-
-<p>B、类的代码(大括号内的语句)执行顺序：   当你创建了对象的时候才会用到各个属性和变量对不对，这里就是这个顺序
--&gt;1、执行静态代码块（大括号包含的语句立刻执行，绝对是第一位的执行，没有能和它平级的）
--&gt;2、静态属性 （第二位执行）
--&gt;3、为非静态属性分配内存并赋值（大括号内语句第三位执行）
--&gt;4、构造函数
--&gt;执行非静态代码块 或 静态方法（都是调用了才加载）。</p>
-
-<p>结论：不论是静态的还是动态的，都是在类加载的时候进行加载的，所以加载时间是一样的，但是何时释放...不知道，省去了对象创建的时间是一定的。</p>
-
-<p>静态方法在程序初始化后会一直贮存在内存中，不会被垃圾回收器回收，
-非静态方法只在该类初始化后贮存在内存中，当该类调用完毕后会被垃圾回收器收集释放。</p>
-
-<p>java类加载全过程：<a href="http://my.oschina.net/volador/blog/87194">http://my.oschina.net/volador/blog/87194</a>
-这个给我们一个使用静态方法的原因：<a href="http://blog.csdn.net/lilu_leo/article/details/8115612">http://blog.csdn.net/lilu_leo/article/details/8115612</a>
-看：<a href="http://www.cnblogs.com/whgw/archive/2011/09/29/2194997.html">http://www.cnblogs.com/whgw/archive/2011/09/29/2194997.html</a></p>
+<p>hashmap 有以下这两个方法：
+numbers.containsKey(a)
+numbers.containsValue(value)、
+hashtable 有一个contain()方法：
+他不是判断是否存在关联的键，而是判断是否存在关键的值
+继承于Map接口
+contains（Object value）
+测试此映射表中是否存在与指定值关联的键（如果此 Hashtable 将一个或多个键映射到此值，则返回 true）。
+判断容器中是否存在值
+但是contains并非和containsKey的功能一致而是和containsValue功能等同. 之所以说是等同原因是需要实现MAP中的containsValue:
+public boolean containsValue(Object value) {
+ return contains(value);
+}</p>
 
       <footer class="site-footer">
 
